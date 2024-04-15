@@ -5,17 +5,27 @@ from django.test.client import Client
 from django.urls import reverse
 from django.utils import timezone
 from news.models import Comment, News
+from news.pytest_tests.constants import (
+    AUTHOR_USERNAME,
+    COMMENT_TEXT,
+    NEWS_DELETE,
+    NEWS_DETAIL,
+    NEWS_EDIT,
+    NEWS_TEXT,
+    NEWS_TITLE,
+    NOT_AUTHOR_USERNAME,
+)
 from yanews.settings import NEWS_COUNT_ON_HOME_PAGE
 
 
 @pytest.fixture
 def author(django_user_model):
-    return django_user_model.objects.create(username="Автор")
+    return django_user_model.objects.create(username=AUTHOR_USERNAME)
 
 
 @pytest.fixture
 def not_author(django_user_model):
-    return django_user_model.objects.create(username="Не автор")
+    return django_user_model.objects.create(username=NOT_AUTHOR_USERNAME)
 
 
 @pytest.fixture
@@ -33,10 +43,15 @@ def not_author_client(not_author):
 
 
 @pytest.fixture
+def guest_client():
+    return Client()
+
+
+@pytest.fixture
 def news():
     news = News.objects.create(
-        title="Заголовок",
-        text="Текст заметки",
+        title=NEWS_TITLE,
+        text=NEWS_TEXT,
         date=timezone.now(),
     )
     return news
@@ -47,29 +62,29 @@ def comment(author, news):
     comm = Comment.objects.create(
         news=news,
         author=author,
-        text="Текст комментария",
+        text=COMMENT_TEXT,
     )
     return comm
 
 
 @pytest.fixture
 def news_url(news):
-    return reverse("news:detail", args=(news.id,))
+    return reverse(NEWS_DETAIL, args=(news.id,))
 
 
 @pytest.fixture
 def edit_url(comment):
-    return reverse("news:edit", args=(comment.id,))
+    return reverse(NEWS_EDIT, args=(comment.id,))
 
 
 @pytest.fixture
 def delete_url(comment):
-    return reverse("news:delete", args=(comment.id,))
+    return reverse(NEWS_DELETE, args=(comment.id,))
 
 
 @pytest.fixture
 def form_data_comm():
-    return {"text": "Текст комментария"}
+    return {"text": COMMENT_TEXT}
 
 
 @pytest.fixture
@@ -78,7 +93,7 @@ def several_news_objects():
     News.objects.bulk_create(
         News(
             title=f"Новость {index}",
-            text="Просто текст.",
+            text=f"Tекст {index}",
             date=today - timedelta(days=index),
         )
         for index in range(NEWS_COUNT_ON_HOME_PAGE + 1)
